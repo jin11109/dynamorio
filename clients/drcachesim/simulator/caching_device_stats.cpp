@@ -172,7 +172,7 @@ caching_device_stats_t::dump_miss(const memref_t &memref)
 
     // the output function below I add some informatiom to output
 #ifdef HAS_ZLIB
-    gzprintf(file_, "%lls,0x%zx\n", memref.data.pid, addr);
+    gzprintf(file_, "%lld,0x%zx\n", memref.data.pid, addr);
 #else
     fprintf(file_, "%lld,0x%zx\n", memref.data.pid, addr);
 #endif
