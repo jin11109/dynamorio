@@ -256,7 +256,7 @@ droption_t<bool> op_instr_only_trace(
     "trace and data entries are omitted.");
 
 droption_t<bool> op_coherence(
-    DROPTION_SCOPE_FRONTEND, "coherence", false, "Model coherence for private caches",
+    DROPTION_SCOPE_FRONTEND, "coherence", true, "Model coherence for private caches",
     "Writes to cache lines will invalidate other private caches that hold that line.");
 
 droption_t<bool> op_use_physical(
