@@ -484,17 +484,17 @@ analyzer_tmpl_t<RecordType, ReaderType>::advance_interval_id(
     uint64_t &prev_interval_init_instr_count, bool at_instr_record)
 {
     uint64_t next_interval_index = 0;
-    // jin : dump timestamp
+    // jin : dump timestamp with in online mode
     // printf("%lu\n", stream->get_last_timestamp());
     if (write_turn) {
         // left data can read
-        dump_timmer_ptr[1] = stream->get_last_timestamp();
+        dump_timmer_ptr[1] = stream->get_instruction_ordinal();
         dump_timmer_ptr[0] = 1;
         dump_timmer_ptr[2] = 0;
         write_turn = false;
     } else {
         // right data can read
-        dump_timmer_ptr[3] = stream->get_last_timestamp();
+        dump_timmer_ptr[3] = stream->get_instruction_ordinal();
         dump_timmer_ptr[2] = 1;
         dump_timmer_ptr[0] = 0;
         write_turn = true;
@@ -977,6 +977,7 @@ bool
 analyzer_tmpl_t<RecordType, ReaderType>::run()
 {
     // XXX i#3286: Add a %-completed progress message by looking at the file sizes.
+    printf("drcachesim : parallel is %d\n", parallel_);
     if (!parallel_) {
         process_serial(worker_data_[0]);
         if (!worker_data_[0].error.empty()) {
