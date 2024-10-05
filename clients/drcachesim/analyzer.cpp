@@ -488,13 +488,13 @@ analyzer_tmpl_t<RecordType, ReaderType>::advance_interval_id(
     // printf("%lu\n", stream->get_last_timestamp());
     if (write_turn) {
         // left data can read
-        dump_timmer_ptr[1] = stream->get_last_timestamp();
+        dump_timmer_ptr[1] = stream->get_instruction_ordinal();
         dump_timmer_ptr[0] = 1;
         dump_timmer_ptr[2] = 0;
         write_turn = false;
     } else {
         // right data can read
-        dump_timmer_ptr[3] = stream->get_last_timestamp();
+        dump_timmer_ptr[3] = stream->get_instruction_ordinal();
         dump_timmer_ptr[2] = 1;
         dump_timmer_ptr[0] = 0;
         write_turn = true;
