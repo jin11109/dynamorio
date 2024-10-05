@@ -45,13 +45,16 @@
 #include <string>
 #include <utility>
 
+// jin : use to get timmer value
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
 #include "memref.h"
 #include "options.h"
 #include "caching_device_block.h"
 #include "trace_entry.h"
 
-// Jin : use the library to add timestamp
-#include "../common/utils.h"
 
 namespace dynamorio {
 namespace drmemtrace {
@@ -101,6 +104,10 @@ caching_device_stats_t::caching_device_stats_t(const std::string &miss_file,
     stats_map_.emplace(metric_name_t::INCLUSIVE_INVALIDATES, num_inclusive_invalidates_);
     stats_map_.emplace(metric_name_t::COHERENCE_INVALIDATES, num_coherence_invalidates_);
     stats_map_.emplace(metric_name_t::EXCLUSIVE_INVALIDATES, num_exclusive_invalidates_);
+    
+    // jin : init timmer ptr
+    int timmer_fd = open("timmer", O_RDONLY, 0666);
+    timer_ptr = (uint64_t*)(mmap(0, 32, PROT_READ, MAP_SHARED, timmer_fd, 0));
 }
 
 caching_device_stats_t::~caching_device_stats_t()
@@ -157,7 +164,8 @@ void
 caching_device_stats_t::dump_miss(const memref_t &memref)
 {
     addr_t addr;
-    
+    uint64_t cur_time = -1;
+
     /* Jin : We don't need pc so I command these
     if (type_is_instr(memref.instr.type))
         pc = memref.instr.addr;
@@ -170,11 +178,18 @@ caching_device_stats_t::dump_miss(const memref_t &memref)
     */
     addr = memref.data.addr;
 
+    // offline time
+    // get current time from timmer
+    if (timer_ptr[0] == 1)
+        cur_time = timer_ptr[1];
+    else if (timer_ptr[2] == 1)
+        cur_time = timer_ptr[3];
+    
     // the output function below I add some informatiom to output
 #ifdef HAS_ZLIB
-    gzprintf(file_, "%lld,0x%zx\n", memref.data.pid, addr);
+    gzprintf(file_, "0x%zx,%d,%lld\n", addr, memref.data.pid, cur_time);
 #else
-    fprintf(file_, "%lld,0x%zx\n", memref.data.pid, addr);
+    fprintf(file_, "0x%zx,%d,%lld\n", addr, memref.data.pid, cur_time);
 #endif
 }
 

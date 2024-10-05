@@ -431,7 +431,6 @@ cache_simulator_t::process_memref(const memref_t &memref)
         knobs_.skip_refs--;
         return true;
     }
-
     // If no warmup is specified and we have simulated sim_refs then
     // we are done.
     if ((knobs_.warmup_refs == 0 && knobs_.warmup_fraction == 0.0) &&

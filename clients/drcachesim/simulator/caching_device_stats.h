@@ -278,6 +278,9 @@ protected:
     FILE *file_;
 #endif
 
+    // jin : timmer ptr
+    uint64_t* timer_ptr;
+
     // Convenience pointer to the caching_device last linked to this stats object.
     caching_device_t *caching_device_;
 };

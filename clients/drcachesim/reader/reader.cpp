@@ -385,6 +385,8 @@ reader_t::process_input_entry()
         break;
     }
     if (have_memref) {
+        // reader is to read raw data for raw2trace
+        //printf("%lu %lu %lu\n", get_last_timestamp(), get_instruction_ordinal(), cur_ref_count_);
         if (suppress_ref_count_ > 0) {
             VPRINT(this, 4, "suppressing %" PRIu64 " ref counts @%" PRIu64 "\n",
                    suppress_ref_count_, cur_ref_count_);

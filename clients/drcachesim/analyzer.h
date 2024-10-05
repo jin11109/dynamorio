@@ -433,6 +433,10 @@ protected:
 private:
     bool
     serial_mode_supported();
+    
+    // jin : Add for time
+    uint64_t* dump_timmer_ptr;
+    bool write_turn;
 };
 
 /** See #dynamorio::drmemtrace::analyzer_tmpl_t. */

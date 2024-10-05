@@ -45,6 +45,11 @@
 #include <utility>
 #include <vector>
 
+// jin : Add for dump timmer
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
 #include "memref.h"
 #include "scheduler.h"
 #include "analysis_tool.h"
@@ -221,8 +226,17 @@ analyzer_tmpl_t<RecordType, ReaderType>::analyzer_tmpl_t()
     , tools_(NULL)
     , parallel_(true)
     , worker_count_(0)
+    , dump_timmer_ptr(nullptr)
+    , write_turn(true)
 {
     /* Nothing else: child class needs to initialize. */
+
+    // jin : init dump file
+    int fd = open("./timmer", O_CREAT | O_RDWR, 0666);
+    if (ftruncate(fd, 32) == -1)
+        close(fd);
+    else 
+        dump_timmer_ptr = (uint64_t*)(mmap(0, 32, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0));
 }
 
 template <typename RecordType, typename ReaderType>
@@ -281,6 +295,7 @@ analyzer_tmpl_t<RecordType, ReaderType>::init_scheduler_common(
 {
     for (int i = 0; i < num_tools_; ++i) {
         if (parallel_ && !tools_[i]->parallel_shard_supported()) {
+            // jin : the cache simulator tool cant use parallel
             parallel_ = false;
             break;
         }
@@ -469,6 +484,22 @@ analyzer_tmpl_t<RecordType, ReaderType>::advance_interval_id(
     uint64_t &prev_interval_init_instr_count, bool at_instr_record)
 {
     uint64_t next_interval_index = 0;
+    // jin : dump timestamp
+    // printf("%lu\n", stream->get_last_timestamp());
+    if (write_turn) {
+        // left data can read
+        dump_timmer_ptr[1] = stream->get_last_timestamp();
+        dump_timmer_ptr[0] = 1;
+        dump_timmer_ptr[2] = 0;
+        write_turn = false;
+    } else {
+        // right data can read
+        dump_timmer_ptr[3] = stream->get_last_timestamp();
+        dump_timmer_ptr[2] = 1;
+        dump_timmer_ptr[0] = 0;
+        write_turn = true;
+    }
+    
     if (interval_microseconds_ > 0) {
         next_interval_index = compute_timestamp_interval_id(stream->get_first_timestamp(),
                                                             stream->get_last_timestamp());
@@ -554,6 +585,7 @@ analyzer_tmpl_t<RecordType, ReaderType>::process_serial(analyzer_worker_data_t &
                                 record_is_instr(record)) &&
             !process_interval(prev_interval_index, prev_interval_init_instr_count,
                               &worker, /*parallel=*/false, record_is_instr(record))) {
+            // jin : target
             return;
         }
         for (int i = 0; i < num_tools_; ++i) {
