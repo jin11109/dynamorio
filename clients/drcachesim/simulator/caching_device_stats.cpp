@@ -178,7 +178,6 @@ caching_device_stats_t::dump_miss(const memref_t &memref)
     */
     addr = memref.data.addr;
 
-    // offline time
     // get current time from timmer
     if (timer_ptr[0] == 1)
         cur_time = timer_ptr[1];
