@@ -977,14 +977,15 @@ bool
 analyzer_tmpl_t<RecordType, ReaderType>::run()
 {
     // XXX i#3286: Add a %-completed progress message by looking at the file sizes.
-    printf("drcachesim : parallel is %d\n", parallel_);
     if (!parallel_) {
+        printf("drcachesim analyzer : run in 'offline' and 'serial' mode\n");
         process_serial(worker_data_[0]);
         if (!worker_data_[0].error.empty()) {
             error_string_ = worker_data_[0].error;
             return false;
         }
     } else {
+        printf("drcachesim analyzer : run in 'offline' and 'parallel' mode\n");
         if (worker_count_ <= 0) {
             error_string_ = "Invalid worker count: must be > 0";
             return false;
