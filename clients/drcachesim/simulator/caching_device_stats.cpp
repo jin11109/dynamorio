@@ -107,7 +107,7 @@ caching_device_stats_t::caching_device_stats_t(const std::string &miss_file,
     
     // jin : init timmer ptr
     int timmer_fd = open("timmer", O_RDONLY, 0666);
-    timer_ptr = (uint64_t*)(mmap(0, 32, PROT_READ, MAP_SHARED, timmer_fd, 0));
+    timer_ptr = (uint64_t*)(mmap(0, 8, PROT_READ, MAP_SHARED, timmer_fd, 0));
 }
 
 caching_device_stats_t::~caching_device_stats_t()
@@ -164,7 +164,7 @@ void
 caching_device_stats_t::dump_miss(const memref_t &memref)
 {
     addr_t addr;
-    uint64_t cur_time = -1;
+    uint64_t cur_time;
 
     /* Jin : We don't need pc so I command these
     if (type_is_instr(memref.instr.type))
@@ -177,12 +177,8 @@ caching_device_stats_t::dump_miss(const memref_t &memref)
     }
     */
     addr = memref.data.addr;
-
     // get current time from timmer
-    if (timer_ptr[0] == 1)
-        cur_time = timer_ptr[1];
-    else if (timer_ptr[2] == 1)
-        cur_time = timer_ptr[3];
+    cur_time = *timer_ptr;
     
     // the output function below I add some informatiom to output
 #ifdef HAS_ZLIB

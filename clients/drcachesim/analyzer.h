@@ -51,6 +51,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <atomic>
 
 #include "analysis_tool.h"
 #include "memref.h"
@@ -435,8 +436,7 @@ private:
     serial_mode_supported();
     
     // jin : Add for time
-    uint64_t* dump_timmer_ptr;
-    bool write_turn;
+    std::atomic<uint64_t>* dump_timmer_ptr;
     uint64_t pre_time;
 };
 
