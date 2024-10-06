@@ -488,7 +488,7 @@ analyzer_tmpl_t<RecordType, ReaderType>::advance_interval_id(
     // jin : dump timestamp
     // printf("%lu\n", stream->get_last_timestamp());
     uint64_t cur_time = stream->get_instruction_ordinal();
-    if (pre_time != cur_time)
+    if (pre_time != cur_time) {
         pre_time = cur_time;
         if (write_turn) {
             // left data can read
@@ -503,6 +503,7 @@ analyzer_tmpl_t<RecordType, ReaderType>::advance_interval_id(
             dump_timmer_ptr[0] = 0;
             write_turn = true;
         }
+    }
     
     if (interval_microseconds_ > 0) {
         next_interval_index = compute_timestamp_interval_id(stream->get_first_timestamp(),
