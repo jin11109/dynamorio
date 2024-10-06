@@ -437,6 +437,7 @@ private:
     // jin : Add for time
     uint64_t* dump_timmer_ptr;
     bool write_turn;
+    uint64_t pre_time;
 };
 
 /** See #dynamorio::drmemtrace::analyzer_tmpl_t. */
