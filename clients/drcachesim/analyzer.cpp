@@ -49,6 +49,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <atomic>
 
 #include "memref.h"
 #include "scheduler.h"
@@ -227,18 +228,17 @@ analyzer_tmpl_t<RecordType, ReaderType>::analyzer_tmpl_t()
     , parallel_(true)
     , worker_count_(0)
     , dump_timmer_ptr(nullptr)
-    , write_turn(true)
     , pre_time(0)
 {
     /* Nothing else: child class needs to initialize. */
 
     // jin : init dump file
     int fd = open("./timmer", O_CREAT | O_RDWR, 0666);
-    if (ftruncate(fd, 32) == -1)
+    if (ftruncate(fd, 8) == -1)
         close(fd);
     else 
-        dump_timmer_ptr = (uint64_t*)(mmap(0, 32, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0));
-}
+        dump_timmer_ptr = reinterpret_cast<std::atomic<uint64_t>*>
+                          (mmap(0, 8, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0));}
 
 template <typename RecordType, typename ReaderType>
 bool
@@ -490,19 +490,7 @@ analyzer_tmpl_t<RecordType, ReaderType>::advance_interval_id(
     uint64_t cur_time = stream->get_last_timestamp();
     if (pre_time != cur_time){
         pre_time = cur_time;
-        if (write_turn) {
-            // left data can read
-            dump_timmer_ptr[1] = cur_time;
-            dump_timmer_ptr[0] = 1;
-            dump_timmer_ptr[2] = 0;
-            write_turn = false;
-        } else {
-            // right data can read
-            dump_timmer_ptr[3] = cur_time;
-            dump_timmer_ptr[2] = 1;
-            dump_timmer_ptr[0] = 0;
-            write_turn = true;
-        }
+        dump_timmer_ptr->store(cur_time, std::memory_order_relaxed);
     }
     
     if (interval_microseconds_ > 0) {
