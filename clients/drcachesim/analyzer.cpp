@@ -228,6 +228,7 @@ analyzer_tmpl_t<RecordType, ReaderType>::analyzer_tmpl_t()
     , worker_count_(0)
     , dump_timmer_ptr(nullptr)
     , write_turn(true)
+    , pre_time(0)
 {
     /* Nothing else: child class needs to initialize. */
 
@@ -486,19 +487,22 @@ analyzer_tmpl_t<RecordType, ReaderType>::advance_interval_id(
     uint64_t next_interval_index = 0;
     // jin : dump timestamp
     // printf("%lu\n", stream->get_last_timestamp());
-    if (write_turn) {
-        // left data can read
-        dump_timmer_ptr[1] = stream->get_instruction_ordinal();
-        dump_timmer_ptr[0] = 1;
-        dump_timmer_ptr[2] = 0;
-        write_turn = false;
-    } else {
-        // right data can read
-        dump_timmer_ptr[3] = stream->get_instruction_ordinal();
-        dump_timmer_ptr[2] = 1;
-        dump_timmer_ptr[0] = 0;
-        write_turn = true;
-    }
+    uint64_t cur_time = stream->get_instruction_ordinal();
+    if (pre_time != cur_time)
+        pre_time = cur_time;
+        if (write_turn) {
+            // left data can read
+            dump_timmer_ptr[1] = cur_time;
+            dump_timmer_ptr[0] = 1;
+            dump_timmer_ptr[2] = 0;
+            write_turn = false;
+        } else {
+            // right data can read
+            dump_timmer_ptr[3] = cur_time;
+            dump_timmer_ptr[2] = 1;
+            dump_timmer_ptr[0] = 0;
+            write_turn = true;
+        }
     
     if (interval_microseconds_ > 0) {
         next_interval_index = compute_timestamp_interval_id(stream->get_first_timestamp(),
